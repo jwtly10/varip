@@ -11,42 +11,15 @@ type testCaseParseFile struct {
 	expectedMatches []Match
 }
 
-// app:
-//
-//	name: "app"
-//	deployment:
-//	  image:
-//	    tag: latest
-//	    repository: "app"
-//	    pullPolicy: Always
-//	  replicaCount: 2
-//	  JAVA_OPTS: "-Xms256m -Xmx512m"
-//	  resources:
-//	    cpuRequest: 200m
-//	    memoryRequest: 512Mi
-//	    memoryLimit: 768Mi
-//	  environmentVariables:
-//	    - name: API_URL
-//	      value: https://api.gatewayurl.com/api/gateway/
-//	    - name: SPRING_REDIS_HOST
-//	      value: redis.host.com
-//	    - name: SPRING_REDIS_PORT
-//	      value: 6379
-//	    - name: SPRING_REDIS_PASSWORD
-//	      value: ${REDIS_PASSWORD}
-//	    - name: SPRING_AUTOCONFIGURE_EXCLUDE
-//	      value: "org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration"
-//	    - name: API_PAYMENT_EXPIRATION_PERIOD_MINUTES
-//	      value: 10
 func TestParseYamlFile(t *testing.T) {
 	testCases := []testCaseParseFile{
 		{
-			filePath:      "./testdata/prod.yaml",
+			filePath:      "./testData/unit/fixtures/unit.yaml",
 			searchPattern: "resources",
 			expectedMatches: []Match{
-				{Path: "./testdata/prod.yaml", LineNum: 0, Key: "app.deployment.resources.cpuRequest", Value: "200m"},
-				{Path: "./testdata/prod.yaml", LineNum: 0, Key: "app.deployment.resources.memoryLimit", Value: "768Mi"},
-				{Path: "./testdata/prod.yaml", LineNum: 0, Key: "app.deployment.resources.memoryRequest", Value: "512Mi"},
+				{Path: "./testData/unit/fixtures/unit.yaml", LineNum: 0, Key: "app.deployment.resources.cpuRequest", Value: "200m"},
+				{Path: "./testData/unit/fixtures/unit.yaml", LineNum: 0, Key: "app.deployment.resources.memoryLimit", Value: "768Mi"},
+				{Path: "./testData/unit/fixtures/unit.yaml", LineNum: 0, Key: "app.deployment.resources.memoryRequest", Value: "512Mi"},
 			},
 		},
 	}
@@ -70,7 +43,7 @@ func TestParseYamlFile(t *testing.T) {
 
 		for _, match := range matches {
 			if !contains(testCase.expectedMatches, match) {
-				t.Errorf("Expected match %v in expected matches", match)
+				t.Errorf("Expected match %v in expected matches: %v", match, testCase.expectedMatches)
 			}
 		}
 
@@ -81,13 +54,13 @@ func TestParseYamlFile(t *testing.T) {
 func TestParseJsonFile(t *testing.T) {
 	testCases := []testCaseParseFile{
 		{
-			filePath:      "./testdata/config.json",
+			filePath:      "./testData/unit/fixtures/unit.json",
 			searchPattern: "database",
 			expectedMatches: []Match{
-				{Path: "./testdata/config.json", LineNum: 0, Key: "database.host", Value: "localhost"},
-				{Path: "./testdata/config.json", LineNum: 0, Key: "database.password", Value: "secret"},
-				{Path: "./testdata/config.json", LineNum: 0, Key: "database.port", Value: "5432"},
-				{Path: "./testdata/config.json", LineNum: 0, Key: "database.user", Value: "admin"},
+				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.host", Value: "localhost"},
+				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.password", Value: "secret"},
+				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.port", Value: "5432"},
+				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.user", Value: "admin"},
 			},
 		},
 	}
@@ -119,15 +92,15 @@ func TestParseJsonFile(t *testing.T) {
 
 func TestParsePropertiesFile(t *testing.T) {
 	testCase := testCaseParseFile{
-		filePath:      "./testdata/application.properties",
+		filePath:      "./testData/unit/fixtures/unit.properties",
 		searchPattern: "sprIng",
 		expectedMatches: []Match{
-			{Path: "./testdata/application.properties", LineNum: 22, Key: "spring.jpa.hibernate.ddl-auto", Value: "update"},
-			{Path: "./testdata/application.properties", LineNum: 23, Key: "spring.datasource.url", Value: "jdbc:mysql://testdb.jfkasdfie3eu-west-2.rds.amazonaws.com/dev"},
-			{Path: "./testdata/application.properties", LineNum: 24, Key: "spring.datasource.username", Value: "${SPRING_DATASOURCE_USERNAME}"},
-			{Path: "./testdata/application.properties", LineNum: 25, Key: "spring.datasource.password", Value: "${SPRING_DATASOURCE_PASSWORD}"},
-			{Path: "./testdata/application.properties", LineNum: 26, Key: "spring.datasource.driver-class-name", Value: "com.mysql.cj.jdbc.Driver"},
-			{Path: "./testdata/application.properties", LineNum: 27, Key: "spring.datasource.hikari.maximum-pool-size", Value: "5"},
+			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 22, Key: "spring.jpa.hibernate.ddl-auto", Value: "update"},
+			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 23, Key: "spring.datasource.url", Value: "jdbc:mysql://testdb.jfkasdfie3eu-west-2.rds.amazonaws.com/dev"},
+			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 24, Key: "spring.datasource.username", Value: "${SPRING_DATASOURCE_USERNAME}"},
+			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 25, Key: "spring.datasource.password", Value: "${SPRING_DATASOURCE_PASSWORD}"},
+			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 26, Key: "spring.datasource.driver-class-name", Value: "com.mysql.cj.jdbc.Driver"},
+			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 27, Key: "spring.datasource.hikari.maximum-pool-size", Value: "5"},
 		},
 	}
 
@@ -154,11 +127,11 @@ func TestParsePropertiesFile(t *testing.T) {
 
 func TestParseEnvFile(t *testing.T) {
 	testCase := testCaseParseFile{
-		filePath:      "./testdata/.env.local",
+		filePath:      "./testData/unit/fixtures/.env.unit",
 		searchPattern: "db",
 		expectedMatches: []Match{
-			{Path: "./testdata/.env.local", LineNum: 1, Key: "DB_HOST", Value: "localhost"},
-			{Path: "./testdata/.env.local", LineNum: 2, Key: "DB_PORT", Value: "5432"},
+			{Path: "./testData/unit/fixtures/.env.unit", LineNum: 1, Key: "DB_HOST", Value: "localhost"},
+			{Path: "./testData/unit/fixtures/.env.unit", LineNum: 2, Key: "DB_PORT", Value: "5432"},
 		},
 	}
 

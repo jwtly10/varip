@@ -36,7 +36,7 @@ func main() {
 			},
 			&cli.BoolFlag{
 				Name:  "no-color",
-				Usage: "Disable colorized output, useful if performance is slow",
+				Usage: "Disable colorized output, useful if performance is slow or colors not supported by your terminal",
 			},
 			&cli.BoolFlag{
 				Name:  "show-hidden",
@@ -150,7 +150,6 @@ func handleError(err error, path string) {
 
 // isSupportedFileType checks if the file type of the given path is supported for searching.
 func isSupportedFileType(path string) bool {
-	supportedFileTypes := []string{".env*", "*.json", "*.properties", "*.yml", "*.yaml"}
 
 	for _, fileType := range supportedFileTypes {
 		fileName := filepath.Base(path)

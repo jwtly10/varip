@@ -64,16 +64,15 @@ func ParseJSONFile(filePath string, re *regexp.Regexp) ([]Match, error) {
 		return nil, err
 	}
 
-	var matches []Match
-	for k, v := range jsonData {
-		if re.MatchString(k) {
-			value, err := json.MarshalIndent(v, "", " ")
-			if err != nil {
-				return nil, err
-			}
+	flattened := make(map[string]interface{})
+	flattenJSON("", jsonData, flattened)
 
-			matches = append(matches, Match{Path: filePath, Key: k, Value: string(value)})
+	var matches []Match
+	for k, v := range flattened {
+		if re.MatchString(k) {
+			matches = append(matches, Match{Path: filePath, Key: k, Value: fmt.Sprintf("%v", v)})
 		}
+
 	}
 
 	return matches, nil

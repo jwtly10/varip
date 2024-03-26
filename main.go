@@ -218,8 +218,17 @@ func printMatches(m []Match, re *regexp.Regexp) {
 		highlightedValue := f(match.Value)
 
 		if showColor {
+			// Line number is not supported for json parsing
+			if match.LineNum == 0 {
+				color.White("%s => %s", highlightedKey, highlightedValue)
+				continue
+			}
 			color.White("%s: %s => %s", highlightedLineNum, highlightedKey, highlightedValue)
 		} else {
+			if match.LineNum == 0 {
+				fmt.Printf("%s => %s\n", match.Key, match.Value)
+				continue
+			}
 			fmt.Printf("%d: %s => %s\n", match.LineNum, match.Key, match.Value)
 		}
 	}

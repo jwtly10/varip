@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"testing"
+	"time"
 )
 
 type testCaseParseFile struct {
@@ -86,6 +87,57 @@ func TestParseJsonFile(t *testing.T) {
 			if !contains(testCase.expectedMatches, match) {
 				t.Errorf("Expected match %v in expected matches", match)
 			}
+		}
+	}
+}
+
+// TestPerformanceParseJsonFile tests the performance of the ParseJSONFile function.
+// It should complete in less than 10 milliseconds.
+func TestPerformanceParseJsonFile(t *testing.T) {
+	testCases := []testCaseParseFile{
+		{
+			filePath:      "./testData/unit/performance/large.json",
+			searchPattern: "car",
+			expectedMatches: []Match{
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.throughout.carbon", Value: "2.30941927e+08"},
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.throughout.carry", Value: "favorite"},
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.careful", Value: "false"},
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "carbon", Value: "false"},
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.carry", Value: "false"},
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "car", Value: "true"},
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.throughout.carried", Value: "moon"},
+				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "careful", Value: "joy"},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		re, err := generateRegex(testCase.searchPattern)
+		if err != nil {
+			t.Fatalf("Failed to compile regex pattern: %v", err)
+		}
+
+		start := time.Now()
+		matches, err := ParseJSONFile(testCase.filePath, re)
+		if err != nil {
+			t.Fatalf("ParseJSONFile returned an error: %v", err)
+		}
+		duration := time.Since(start)
+
+		log.Println(matches)
+
+		if len(matches) != len(testCase.expectedMatches) {
+			t.Errorf("Expected %d matches, got %d", len(testCase.expectedMatches), len(matches))
+		}
+
+		for _, match := range matches {
+			if !contains(testCase.expectedMatches, match) {
+				t.Errorf("Expected match %v in expected matches", match)
+			}
+		}
+
+		if duration > 10*time.Millisecond {
+			t.Errorf("Test execution took longer than 10 milliseconds, duration: %v", duration)
 		}
 	}
 }

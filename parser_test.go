@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -12,15 +14,22 @@ type testCaseParseFile struct {
 	expectedMatches []Match
 }
 
+// abs returns the absolute path of the given file path, relative to the current file.
+func abs(filePath string) string {
+	_, filename, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(filename)
+	return filepath.Join(basepath, filePath)
+}
+
 func TestParseYamlFile(t *testing.T) {
 	testCases := []testCaseParseFile{
 		{
-			filePath:      "./testData/unit/fixtures/unit.yaml",
+			filePath:      abs("./testdata/unit/fixtures/unit.yaml"),
 			searchPattern: "resources",
 			expectedMatches: []Match{
-				{Path: "./testData/unit/fixtures/unit.yaml", LineNum: 0, Key: "app.deployment.resources.cpuRequest", Value: "200m"},
-				{Path: "./testData/unit/fixtures/unit.yaml", LineNum: 0, Key: "app.deployment.resources.memoryLimit", Value: "768Mi"},
-				{Path: "./testData/unit/fixtures/unit.yaml", LineNum: 0, Key: "app.deployment.resources.memoryRequest", Value: "512Mi"},
+				{Path: abs("./testdata/unit/fixtures/unit.yaml"), LineNum: 0, Key: "app.deployment.resources.cpuRequest", Value: "200m"},
+				{Path: abs("./testdata/unit/fixtures/unit.yaml"), LineNum: 0, Key: "app.deployment.resources.memoryLimit", Value: "768Mi"},
+				{Path: abs("./testdata/unit/fixtures/unit.yaml"), LineNum: 0, Key: "app.deployment.resources.memoryRequest", Value: "512Mi"},
 			},
 		},
 	}
@@ -55,13 +64,13 @@ func TestParseYamlFile(t *testing.T) {
 func TestParseJsonFile(t *testing.T) {
 	testCases := []testCaseParseFile{
 		{
-			filePath:      "./testData/unit/fixtures/unit.json",
+			filePath:      abs("./testdata/unit/fixtures/unit.json"),
 			searchPattern: "database",
 			expectedMatches: []Match{
-				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.host", Value: "localhost"},
-				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.password", Value: "secret"},
-				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.port", Value: "5432"},
-				{Path: "./testData/unit/fixtures/unit.json", LineNum: 0, Key: "database.user", Value: "admin"},
+				{Path: abs("./testdata/unit/fixtures/unit.json"), LineNum: 0, Key: "database.host", Value: "localhost"},
+				{Path: abs("./testdata/unit/fixtures/unit.json"), LineNum: 0, Key: "database.password", Value: "secret"},
+				{Path: abs("./testdata/unit/fixtures/unit.json"), LineNum: 0, Key: "database.port", Value: "5432"},
+				{Path: abs("./testdata/unit/fixtures/unit.json"), LineNum: 0, Key: "database.user", Value: "admin"},
 			},
 		},
 	}
@@ -96,17 +105,17 @@ func TestParseJsonFile(t *testing.T) {
 func TestPerformanceParseJsonFile(t *testing.T) {
 	testCases := []testCaseParseFile{
 		{
-			filePath:      "./testData/unit/performance/large.json",
+			filePath:      abs("./testdata/unit/performance/large.json"),
 			searchPattern: "car",
 			expectedMatches: []Match{
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.throughout.carbon", Value: "2.30941927e+08"},
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.throughout.carry", Value: "favorite"},
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.careful", Value: "false"},
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "carbon", Value: "false"},
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.carry", Value: "false"},
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "car", Value: "true"},
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "ago.throughout.carried", Value: "moon"},
-				{Path: "./testData/unit/performance/large.json", LineNum: 0, Key: "careful", Value: "joy"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "ago.throughout.carbon", Value: "2.30941927e+08"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "ago.throughout.carry", Value: "favorite"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "ago.careful", Value: "false"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "carbon", Value: "false"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "ago.carry", Value: "false"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "car", Value: "true"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "ago.throughout.carried", Value: "moon"},
+				{Path: abs("./testdata/unit/performance/large.json"), LineNum: 0, Key: "careful", Value: "joy"},
 			},
 		},
 	}
@@ -144,15 +153,15 @@ func TestPerformanceParseJsonFile(t *testing.T) {
 
 func TestParsePropertiesFile(t *testing.T) {
 	testCase := testCaseParseFile{
-		filePath:      "./testData/unit/fixtures/unit.properties",
+		filePath:      abs("./testdata/unit/fixtures/unit.properties"),
 		searchPattern: "sprIng",
 		expectedMatches: []Match{
-			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 22, Key: "spring.jpa.hibernate.ddl-auto", Value: "update"},
-			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 23, Key: "spring.datasource.url", Value: "jdbc:mysql://testdb.jfkasdfie3eu-west-2.rds.amazonaws.com/dev"},
-			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 24, Key: "spring.datasource.username", Value: "${SPRING_DATASOURCE_USERNAME}"},
-			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 25, Key: "spring.datasource.password", Value: "${SPRING_DATASOURCE_PASSWORD}"},
-			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 26, Key: "spring.datasource.driver-class-name", Value: "com.mysql.cj.jdbc.Driver"},
-			{Path: "./testData/unit/fixtures/unit.properties", LineNum: 27, Key: "spring.datasource.hikari.maximum-pool-size", Value: "5"},
+			{Path: abs("./testdata/unit/fixtures/unit.properties"), LineNum: 22, Key: "spring.jpa.hibernate.ddl-auto", Value: "update"},
+			{Path: abs("./testdata/unit/fixtures/unit.properties"), LineNum: 23, Key: "spring.datasource.url", Value: "jdbc:mysql://testdb.jfkasdfie3eu-west-2.rds.amazonaws.com/dev"},
+			{Path: abs("./testdata/unit/fixtures/unit.properties"), LineNum: 24, Key: "spring.datasource.username", Value: "${SPRING_DATASOURCE_USERNAME}"},
+			{Path: abs("./testdata/unit/fixtures/unit.properties"), LineNum: 25, Key: "spring.datasource.password", Value: "${SPRING_DATASOURCE_PASSWORD}"},
+			{Path: abs("./testdata/unit/fixtures/unit.properties"), LineNum: 26, Key: "spring.datasource.driver-class-name", Value: "com.mysql.cj.jdbc.Driver"},
+			{Path: abs("./testdata/unit/fixtures/unit.properties"), LineNum: 27, Key: "spring.datasource.hikari.maximum-pool-size", Value: "5"},
 		},
 	}
 
@@ -179,11 +188,11 @@ func TestParsePropertiesFile(t *testing.T) {
 
 func TestParseEnvFile(t *testing.T) {
 	testCase := testCaseParseFile{
-		filePath:      "./testData/unit/fixtures/.env.unit",
+		filePath:      abs("./testdata/unit/fixtures/.env.unit"),
 		searchPattern: "db",
 		expectedMatches: []Match{
-			{Path: "./testData/unit/fixtures/.env.unit", LineNum: 1, Key: "DB_HOST", Value: "localhost"},
-			{Path: "./testData/unit/fixtures/.env.unit", LineNum: 2, Key: "DB_PORT", Value: "5432"},
+			{Path: abs("./testdata/unit/fixtures/.env.unit"), LineNum: 1, Key: "DB_HOST", Value: "localhost"},
+			{Path: abs("./testdata/unit/fixtures/.env.unit"), LineNum: 2, Key: "DB_PORT", Value: "5432"},
 		},
 	}
 

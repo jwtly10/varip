@@ -23,7 +23,7 @@ Pre-built binaries for varip are available under [GitHub Releases](https://githu
 mv varip /usr/local/bin/varip
 ```
 
-### Homebrew (macOS and Linux)
+<!-- ### Homebrew (macOS and Linux)
 If you are on macOS or Linux, you can install varip using Homebrew, a package manager that simplifies the installation and management of software.
 
 To install varip using Homebrew, run the following command:
@@ -40,7 +40,7 @@ After installation, you can verify that varip is correctly installed by running:
 ```sh
 varip --help
 ```
-This command should display the usage information for varip, indicating that the installation was successful.
+This command should display the usage information for varip, indicating that the installation was successful. -->
 
 
 

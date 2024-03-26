@@ -12,7 +12,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var debugEnabled bool = false
+var verboseEnabled bool = false
+var showColor bool = true
+var showErrors bool = false
+
+var yellow = color.New(color.FgYellow)
+var blue = color.New(color.FgBlue)
+var red = color.New(color.FgRed)
 
 func main() {
 	app := &cli.App{
@@ -21,8 +27,12 @@ func main() {
 		UsageText: "varip [options] [path] [pattern]",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:  "debug",
+				Name:  "verbose",
 				Usage: "Enable verbose debug logging",
+			},
+			&cli.BoolFlag{
+				Name:  "errors",
+				Usage: "Display errors in output, by default errors are hidden, so only matches are shown",
 			},
 			&cli.BoolFlag{
 				Name:  "no-color",
@@ -34,8 +44,10 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			debugEnabled = c.Bool("debug")
+			verboseEnabled = c.Bool("debug")
+			showErrors = c.Bool("errors")
 			showHidden := c.Bool("show-hidden")
+			showColor = !c.Bool("no-color")
 
 			path := "."
 			pattern := ""
@@ -61,7 +73,7 @@ func main() {
 				log.Fatalf("Error generating regex: %s", err)
 			}
 
-			color.Yellow("Searching for pattern '%s' in %s\n", pattern, fullPath)
+			coloredPrintf(yellow, "Searching for pattern '%s' in %s\n\n", pattern, fullPath)
 
 			return search(fullPath, regPattern, showHidden)
 		},
@@ -78,32 +90,49 @@ func main() {
 func search(rootPath string, pattern *regexp.Regexp, showHidden bool) error {
 	err := filepath.WalkDir(rootPath, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
-			handleError(err)
+			handleError(err, rootPath)
 			verbose("Error walking directory %s: %s", rootPath, err)
 		}
 
-		// Skip hidden files and directories, unless showHidden is true or it's a .env file
-		if !showHidden && (strings.HasPrefix(d.Name(), ".") && !strings.Contains(d.Name(), ".env")) {
-			if d.IsDir() {
-				return filepath.SkipDir
-			}
+		// Check if the entry is a symlink and skip it
+		if d.Type().IsRegular() && d.Type()&os.ModeSymlink != 0 {
+			verbose("Skipping symlink %s", path)
 			return nil
 		}
 
-		if !d.IsDir() {
-			if isSupportedFileType(path) {
-				err := parseFile(path, pattern)
-				if err != nil {
-					handleError(err)
-					verbose("Error searching in file %s: %s", path, err)
+		if !showHidden {
+			// If the entry is a hidden file or directory, skip it
+			// Other than .env files, which are supported
+			if strings.HasPrefix(filepath.Base(path), ".") && !strings.Contains(d.Name(), ".env") {
+				if d.IsDir() {
+					return filepath.SkipDir
 				}
+				return nil
+			}
+
+			// If the entry is a directory, check if it's in the ignore list
+			for _, ignoredDir := range ignoredDirectories {
+				if strings.Contains(path, ignoredDir) {
+					if d.IsDir() {
+						return filepath.SkipDir
+					}
+					return nil
+				}
+			}
+		}
+
+		if !d.IsDir() && isSupportedFileType(path) {
+			err := parseFile(path, pattern)
+			if err != nil {
+				handleError(err, path)
+				verbose("Error searching in file %s: %s", path, err)
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		handleError(err)
+		handleError(err, rootPath)
 		verbose("Error walking directory %s: %s", rootPath, err)
 	}
 
@@ -111,9 +140,12 @@ func search(rootPath string, pattern *regexp.Regexp, showHidden bool) error {
 }
 
 // handleError prints the given error message
-func handleError(err error) {
-	// TODO: Wrap errors for more context
-	color.Red("Error: %s", err)
+func handleError(err error, path string) {
+	if showErrors {
+		// TODO: Wrap errors for more context
+		coloredPrintf(blue, "%s\n", path)
+		coloredPrintf(red, "Error: %s\n\n", err)
+	}
 }
 
 // isSupportedFileType checks if the file type of the given path is supported for searching.
@@ -171,18 +203,40 @@ func printMatches(m []Match, re *regexp.Regexp) {
 		return
 	}
 
-	color.Blue("%s", m[0].Path)
-
+	coloredPrintf(blue, "%s\n", m[0].Path)
 	highlight := color.New(color.FgHiRed).SprintFunc()
 
 	for _, match := range m {
+		y := color.New(color.FgHiYellow).SprintFunc()
+		highlightedLineNum := y(match.LineNum)
+
 		highlightedKey := re.ReplaceAllStringFunc(match.Key, func(s string) string {
 			return highlight(s)
 		})
-		// highlightedValue := re.ReplaceAllStringFunc(match.Value, func(s string) string {
-		// 	return highlight(s)
-		// })
 
-		color.White("%d: %s => %s", match.LineNum, highlightedKey, match.Value)
+		f := color.New(color.Faint).SprintFunc()
+		highlightedValue := f(match.Value)
+
+		if showColor {
+			color.White("%s: %s => %s", highlightedLineNum, highlightedKey, highlightedValue)
+		} else {
+			fmt.Printf("%d: %s => %s\n", match.LineNum, match.Key, match.Value)
+		}
+	}
+
+	fmt.Println()
+}
+
+// coloredPrintf prints the formatted string with or without color.
+// The first argument is a color attribute (if color is enabled), followed by the format string and any additional arguments.
+func coloredPrintf(colorAttribute *color.Color, format string, a ...interface{}) {
+	formattedMessage := fmt.Sprintf(format, a...)
+
+	if showColor && colorAttribute != nil {
+		// If color is enabled, apply the color to the already formatted message
+		fmt.Print(colorAttribute.Sprint(formattedMessage))
+	} else {
+		// If color is disabled, print the formatted message directly
+		fmt.Print(formattedMessage)
 	}
 }

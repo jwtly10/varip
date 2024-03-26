@@ -1,0 +1,16 @@
+{
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "user": "admin",
+        "password": "secret"
+    },
+    "api": {
+        "key": "some_test_api_key",
+        "endpoint": "https://api.example.com"
+    },
+    "features": {
+        "logging": true,
+        "debugMode": false
+    }
+}

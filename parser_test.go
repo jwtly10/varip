@@ -4,12 +4,51 @@ import (
 	"testing"
 )
 
+type testCaseParseFile struct {
+	filePath        string
+	searchPattern   string
+	expectedMatches []Match
+}
+
+func TestParseJsonFile(t *testing.T) {
+
+	testCases := []testCaseParseFile{
+		{
+			filePath:      "./testdata/config.json",
+			searchPattern: "database",
+			expectedMatches: []Match{
+				{Path: "./testdata/config.json", LineNum: 0, Key: "database", Value: "{\n \"host\": \"localhost\",\n \"password\": \"secret\",\n \"port\": 5432,\n \"user\": \"admin\"\n}"},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		re, err := generateRegex(testCase.searchPattern)
+		if err != nil {
+			t.Fatalf("Failed to compile regex pattern: %v", err)
+		}
+
+		matches, err := ParseJSONFile(testCase.filePath, re)
+		if err != nil {
+			t.Fatalf("ParseJSONFile returned an error: %v", err)
+		}
+
+		if len(matches) != len(testCase.expectedMatches) {
+			t.Errorf("Expected %d matches, got %d", len(testCase.expectedMatches), len(matches))
+		}
+
+		for i, match := range matches {
+			if match != testCase.expectedMatches[i] {
+				t.Errorf("Expected match %#v, got %#v at index %d", testCase.expectedMatches[i], match, i)
+			}
+		}
+
+	}
+
+}
+
 func TestParsePropertiesFile(t *testing.T) {
-	testCase := struct {
-		filePath        string
-		searchPattern   string
-		expectedMatches []Match
-	}{
+	testCase := testCaseParseFile{
 		filePath:      "./testdata/application.properties",
 		searchPattern: "sprIng",
 		expectedMatches: []Match{
@@ -44,11 +83,7 @@ func TestParsePropertiesFile(t *testing.T) {
 }
 
 func TestParseEnvFile(t *testing.T) {
-	testCase := struct {
-		filePath        string
-		searchPattern   string
-		expectedMatches []Match
-	}{
+	testCase := testCaseParseFile{
 		filePath:      "./testdata/.env.local",
 		searchPattern: "db",
 		expectedMatches: []Match{

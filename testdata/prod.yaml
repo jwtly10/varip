@@ -1,0 +1,24 @@
+app:
+  name: "app"
+  deployment:
+    image:
+      tag: latest
+      repository: "app"
+      pullPolicy: Always
+    replicaCount: 2
+    JAVA_OPTS: "-Xms256m -Xmx512m"
+    resources:
+      cpuRequest: 200m
+      memoryRequest: 512Mi
+      memoryLimit: 768Mi
+    environmentVariables:
+      - name: API_URL
+        value: https://api.gatewayurl.com/api/gateway/
+      - name: SPRING_REDIS_HOST
+        value: redis.host.com
+      - name: SPRING_REDIS_PORT
+        value: 6379
+      - name: SPRING_REDIS_PASSWORD
+        value: ${REDIS_PASSWORD}
+      - name: API_PAYMENT_EXPIRATION_PERIOD_MINUTES
+        value: 10

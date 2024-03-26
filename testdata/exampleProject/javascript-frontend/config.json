@@ -1,0 +1,4 @@
+{
+    "apiUrl": "https://stage-api.example.com",
+    "featureFlagNewUI": false
+}

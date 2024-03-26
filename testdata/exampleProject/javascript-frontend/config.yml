@@ -1,0 +1,18 @@
+# Config for CI/CD pipeline
+server:
+  port: 3000
+  url: localhost/ci/
+
+database:
+  url: localhost/ci
+  port: 5432
+  user: myuser
+  password: mypassword
+  name: mydatabase
+
+logging:
+  level: debug
+  format: text
+
+features:
+  enableBetaFeatures: false

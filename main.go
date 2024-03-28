@@ -206,7 +206,7 @@ func printMatches(m []Match, re *regexp.Regexp) {
 	highlight := color.New(color.FgHiRed).SprintFunc()
 
 	for _, match := range m {
-		y := color.New(color.FgHiYellow).SprintFunc()
+		y := color.New(color.Faint).SprintFunc()
 		highlightedLineNum := y(match.LineNum)
 
 		highlightedKey := re.ReplaceAllStringFunc(match.Key, func(s string) string {

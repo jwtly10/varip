@@ -83,7 +83,7 @@ NAME:
    varip - Searches for environment variables in files. Searches in the current directory by default.
 
 USAGE:
-   varip [options] [path] [pattern]
+   varip [options] [pattern] [path]
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
@@ -106,7 +106,7 @@ varip DB_PASSWORD
 
 Search for 'API_KEY' in files located in a specific directory:
 ``` sh
-varip /path/to/configs API_KEY
+varip API_KEY /path/to/configs 
 ```
 
 ## Development

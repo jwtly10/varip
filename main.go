@@ -24,7 +24,7 @@ func main() {
 	app := &cli.App{
 		Name:      "varip",
 		Usage:     "Searches for environment variables in files. Searches in the current directory by default.",
-		UsageText: "varip [options] [path] [pattern]",
+		UsageText: "varip [options] [pattern] [path]",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "verbose",
@@ -52,9 +52,9 @@ func main() {
 			path := "."
 			pattern := ""
 			if c.NArg() > 1 {
-				// If there are two or more arguments, first is path, second is pattern
-				path = c.Args().Get(0)
-				pattern = c.Args().Get(1)
+				// If there are two or more arguments, first is pattern, second is path
+				pattern = c.Args().Get(0)
+				path = c.Args().Get(1)
 			} else if c.NArg() == 1 {
 				// If there is only one argument, it's the pattern
 				pattern = c.Args().Get(0)

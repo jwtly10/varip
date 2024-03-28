@@ -1,26 +1,47 @@
 # varip
 
-A lightweight command line environment variables ripper (think simple Grep for config files)
+A lightweight and fast command line environment variables ripper (think simple Grep for config files).
 
-Currently supported file types can be found here https://github.com/jwtly10/varip/blob/main/constants.go (.env*, *.json, *.properties, *.yml, *.yaml)
-
-More file types can easily be added by simply defining a parser, and adding the filetype to the allowed list.
-
-Some common dependency directorys are hidden and will not be parsed for config files.
+Notes: 
+1. Currently supported file types can be found here https://github.com/jwtly10/varip/blob/main/constants.go (.env*, *.json, *.properties, *.yml, *.yaml).
+2. More file types can easily be added by simply defining a parser, and adding the filetype to the allowed list.
+3. Some common dependency directorys are hidden and will not be parsed for config files.
+4. Incorrectly formatted files throw errors and are skipped. Only valid files will be parsed.
 
 ## Installation
 
 varip can be installed on your system using one of the following methods:
 
 ### Pre-built Binaries
-Pre-built binaries for varip are available under [GitHub Releases](https://github.com/jwtly10/varip/releases/). You can download the appropriate version for your operating system and architecture.
 
-1. Navigate to the Releases page and download the latest version for your OS.
-2. Unzip the downloaded file to extract the varip binary.
-3. Move the varip binary to a directory in your PATH to make it globally accessible. For example on Mac/Linux:
+Pre-built binaries for varip are available under [GitHub Releases](https://github.com/jwtly10/varip/releases/). You can download the appropriate version for your operating system and architecture. However note that they are NOT signed, so your respective OS may refuse to run them. 
 
-```sh
-mv varip /usr/local/bin/varip
+I will not provide steps to circumvent this, but feel free to do so.
+
+Instead, it's easier to just clone and build the app. Assuming you have git and Go 1.22+ installed, you can install varip using the following script:
+### Linux/Mac
+
+Ensure you are in a directory where you want to clone varip.
+
+This script will install varip to /usr/local/bin, which is on the PATH so allows access to `varip` anywhere. Feel free to customize it to your needs.
+
+``` bash
+#!/bin/bash
+
+echo "Cloning the varip repository..."
+git clone https://github.com/jwtly10/varip &&
+
+echo "Changing directory to varip..."
+cd ./varip &&
+
+echo "Building the varip binary..."
+go build &&
+
+echo "Moving the varip binary to /usr/local/bin..."
+sudo mv varip /usr/local/bin/varip
+
+echo "Installation complete. You can now use varip by typing 'varip' in your terminal."
+
 ```
 
 <!-- ### Homebrew (macOS and Linux)
@@ -47,6 +68,14 @@ This command should display the usage information for varip, indicating that the
 ## Usage
 
 varip  is easy to use and can be run from the command line by specifying a path and a pattern to search for. If no path is provided, it searches in the current directory by default.
+
+There are some abstractions for the sake of a clean interface.
+1. Errors during file parsing are hidden by default. To display errors, use the `--errors` flag.
+2. Verbose debug logging is disabled by default. To enable verbose debug logging, use the `--verbose` flag.
+
+
+This leads to a cleaner interface of just seeing the matches you are looking for.
+
 
 ``` sh
 NAME:

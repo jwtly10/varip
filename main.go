@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -21,6 +20,21 @@ var blue = color.New(color.FgBlue)
 var red = color.New(color.FgRed)
 
 func main() {
+	h := NewSearchHandler()
+	app := setupApp(h)
+
+	err := app.Run(os.Args)
+	if err != nil {
+		coloredPrintf(red, "Error running varip: %s\n", err)
+		os.Exit(1)
+	}
+}
+
+type FileSearcher interface {
+	Search(path string, pattern *regexp.Regexp, showHidden bool) error
+}
+
+func setupApp(searchHandler FileSearcher) *cli.App {
 	app := &cli.App{
 		Name:      "varip",
 		Usage:     "Searches for environment variables in files. Searches in the current directory by default.",
@@ -75,68 +89,10 @@ func main() {
 
 			coloredPrintf(yellow, "Searching for pattern '%s' in %s\n\n", pattern, fullPath)
 
-			return search(fullPath, regPattern, showHidden)
+			return searchHandler.Search(fullPath, regPattern, showHidden)
 		},
 	}
-
-	err := app.Run(os.Args)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error running varip: %s\n", err)
-		os.Exit(1)
-	}
-}
-
-// search recursively searches for the given pattern in files under the rootPath directory.
-func search(rootPath string, pattern *regexp.Regexp, showHidden bool) error {
-	err := filepath.WalkDir(rootPath, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			handleError(err, rootPath)
-			verbose("Error walking directory %s: %s", rootPath, err)
-		}
-
-		// Check if the entry is a symlink and skip it
-		if d.Type().IsRegular() && d.Type()&os.ModeSymlink != 0 {
-			verbose("Skipping symlink %s", path)
-			return nil
-		}
-
-		if !showHidden {
-			// If the entry is a hidden file or directory, skip it
-			// Other than .env files, which are supported
-			if strings.HasPrefix(filepath.Base(path), ".") && !strings.Contains(d.Name(), ".env") {
-				if d.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-
-			// If the entry is a directory, check if it's in the ignore list
-			for _, ignoredDir := range ignoredDirectories {
-				if strings.Contains(path, ignoredDir) {
-					if d.IsDir() {
-						return filepath.SkipDir
-					}
-					return nil
-				}
-			}
-		}
-
-		if !d.IsDir() && isSupportedFileType(path) {
-			err := parseFile(path, pattern)
-			if err != nil {
-				handleError(err, path)
-				verbose("Error searching in file %s: %s", path, err)
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		handleError(err, rootPath)
-		verbose("Error walking directory %s: %s", rootPath, err)
-	}
-
-	return nil
+	return app
 }
 
 // handleError prints the given error message
@@ -162,77 +118,11 @@ func isSupportedFileType(path string) bool {
 	return false
 }
 
-// parseFile parses the file at the given path based on its file type and searches for the pattern.
-func parseFile(path string, pattern *regexp.Regexp) error {
-	var results []Match
-	var err error
-
-	switch {
-	case strings.HasPrefix(filepath.Base(path), ".env") || strings.HasSuffix(path, ".properties"):
-		results, err = ParseEnvFile(path, pattern)
-	case strings.HasSuffix(path, ".json"):
-		results, err = ParseJSONFile(path, pattern)
-	case strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml"):
-		results, err = ParseYAMLFile(path, pattern)
-
-	default:
-		err = fmt.Errorf("unsupported file type %s", path)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	printMatches(results, pattern)
-
-	return nil
-}
-
 // generateRegex generates a case-insensitive regular expression from the given pattern.
 func generateRegex(pattern string) (*regexp.Regexp, error) {
 	pattern = "(?i)" + regexp.QuoteMeta(pattern)
 	re, err := regexp.Compile(pattern)
 	return re, err
-}
-
-// printMatches pretty prints the matches found in the given list of Match objects.
-// Highlights the matched pattern in the key.
-func printMatches(m []Match, re *regexp.Regexp) {
-	if len(m) == 0 {
-		return
-	}
-
-	coloredPrintf(blue, "%s\n", m[0].Path)
-	highlight := color.New(color.FgHiRed).SprintFunc()
-
-	for _, match := range m {
-		y := color.New(color.Faint).SprintFunc()
-		highlightedLineNum := y(match.LineNum)
-
-		highlightedKey := re.ReplaceAllStringFunc(match.Key, func(s string) string {
-			return highlight(s)
-		})
-
-		f := color.New(color.Faint).SprintFunc()
-		highlightedValue := f(match.Value)
-
-		if showColor {
-			// Line number is not supported for json parsing
-			if match.LineNum == 0 {
-				color.White("%s => %s", highlightedKey, highlightedValue)
-				continue
-			}
-			color.White("%s: %s => %s", highlightedLineNum, highlightedKey, highlightedValue)
-		} else {
-			if match.LineNum == 0 {
-				fmt.Printf("%s => %s\n", match.Key, match.Value)
-				continue
-			}
-			fmt.Printf("%d: %s => %s\n", match.LineNum, match.Key, match.Value)
-		}
-	}
-
-	fmt.Println()
 }
 
 // coloredPrintf prints the formatted string with or without color.

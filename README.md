@@ -7,7 +7,8 @@ Notes:
 2. More file types can easily be added by simply defining a parser, and adding the filetype to the allowed list.
 3. Some common dependency directorys are hidden and will not be parsed for config files.
 4. Incorrectly formatted files throw errors and are skipped. Only valid files will be parsed.
-
+   
+![screenshot of program](https://github.com/jwtly10/varip/blob/main/docs/screenshot.png?raw=true)
 ## Installation
 
 varip can be installed on your system using one of the following methods:
